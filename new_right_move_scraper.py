@@ -1,8 +1,11 @@
 from datetime import datetime
 from pathlib import Path
+from selenium.common.exceptions import TimeoutException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from unittest.main import main
 import json
 import os
@@ -32,13 +35,13 @@ class RightMoveScraper():
         It uses selenium's webdriver function to access the google chrome browser. 
 
         """
-        # chrome_options = Options()
+        chrome_options = Options()
         # #chrome_options.add_argument("--disable-extensions")
         # #chrome_options.add_argument("--disable-gpu")
-        # chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")
         # # chrome_options.headless = True # also works
-        # self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver = webdriver.Chrome()
+        self.driver = webdriver.Chrome(options=chrome_options)
+        # self.driver = webdriver.Chrome()
         query = "glasgow"
         self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
         
@@ -62,11 +65,22 @@ class RightMoveScraper():
         to locate and click on the button.
         
         """
-        
-        accept_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Allow all cookies']")
-        time.sleep(1)
-        accept_button.click()
-        print(accept_button)
+       
+        delay = 10
+        try:
+            # body class='header-rebranding rebranded-logo'
+            #WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, "//*[@class='header-rebranding rebranded-logo']"))
+            time.sleep(1)
+            print("Frame Ready!")
+            accept_cookies_button = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, "//button[@aria-label='Allow all cookies']")))
+            print("Accept Cookies Button Ready!")
+            # accept_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Allow all cookies']")
+            accept_cookies_button.click()
+            time.sleep(1)
+            print(accept_cookies_button)
+        except TimeoutException:
+            print("Loading took too much time!")
+
         return True
 
     def search_for_houses(self):
@@ -126,11 +140,16 @@ class RightMoveScraper():
         # scrolls to the specific height of 8000, going down the page
         self.driver.execute_script("window.scrollTo(0, 8000);")
         time.sleep(2)
+
+        delay = 10
+        # try:
+        #     container = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "propertySearch")))
         # propertySearch is the id of the container that holds all the images of the result
         container = self.driver.find_element(By.ID, "propertySearch") 
         # uses xpath to locate the element that holds the image
         image_containers = container.find_elements(By.XPATH, "div/div/div/div/div/div/div/div/div/div/div/div/a/div/div/div/img") 
         # A dictionary to store all the images and associated data
+        
         images = {}
 
         for img in image_containers:
