@@ -9,6 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from unittest.main import main
 import json
 import os
+import pandas as pd
 import requests
 import time
 
@@ -44,7 +45,7 @@ class RightMoveScraper():
         # self.driver = webdriver.Chrome()
         query = "glasgow"
         self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
-        
+        self.delay = 10
         
 # TODO: Add in the wait until functions to all elements being accessed
 
@@ -66,13 +67,14 @@ class RightMoveScraper():
         
         """
        
-        delay = 10
+        
         try:
             # body class='header-rebranding rebranded-logo'
             #WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, "//*[@class='header-rebranding rebranded-logo']"))
             time.sleep(1)
             print("Frame Ready!")
-            accept_cookies_button = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, "//button[@aria-label='Allow all cookies']")))
+            wait = WebDriverWait(self.driver, self.delay)
+            accept_cookies_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button[@aria-label='Allow all cookies']")))
             print("Accept Cookies Button Ready!")
             # accept_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Allow all cookies']")
             accept_cookies_button.click()
@@ -141,23 +143,41 @@ class RightMoveScraper():
         self.driver.execute_script("window.scrollTo(0, 8000);")
         time.sleep(2)
 
-        delay = 10
+        
         # try:
-        #     container = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "propertySearch")))
-        # propertySearch is the id of the container that holds all the images of the result
+        # #     container = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "propertySearch")))
+        # # propertySearch is the id of the container that holds all the images of the result
+        
+        #     wait = WebDriverWait(self.driver, self.delay)
+        #     container = wait.until(EC.presence_of_element_located((By.ID, "propertySearch")))
+        #     image_containers = wait.until(EC.presence_of_all_elements_located((By.XPATH, "div/div/div/div/div/div/div/div/div/div/div/div/a/div/div/div/img"))) 
+
         container = self.driver.find_element(By.ID, "propertySearch") 
         # uses xpath to locate the element that holds the image
         image_containers = container.find_elements(By.XPATH, "div/div/div/div/div/div/div/div/div/div/div/div/a/div/div/div/img") 
         # A dictionary to store all the images and associated data
-        
         images = {}
 
+    # def create_image_folders(self, image_containers):
+    #     images = {}
+
+
         for img in image_containers:
+
+
             # TODO: use pandas to clean the title
             # Replaces special characters in the title so that the image name can be saved without error
             # if code randomly stops, it may be due to the name being saved having special characters that need replaced ^^
-            title = img.get_attribute('alt').lower().replace(' ', '-').replace('?', '-').replace('|', '-').replace(',', '-').replace(':', '-').replace(';', '-').replace('/', '-')
+            
+            title = img.get_attribute('alt').lower()
+            # Create a DataFrame from the title string
+            df = pd.DataFrame([title], columns=['title'])
+            # Replace unwanted characters with '-'
+            df['title'] = df['title'].str.replace(r'[^\w\s]+', '-', regex=True)
+            # Assign the cleaned title back to the title variable
+            title = df['title'].iloc[0]
             img_src = img.get_attribute('src')
+
             timestamp = datetime.now().strftime("%Y-%m-%d_[%H_%M_%S]")
             # Create a unique ID for the image by combining the image, timestamp, and title
             image_id = "image_{}_{}_{}".format(img, timestamp, title)
@@ -184,6 +204,9 @@ class RightMoveScraper():
 
             # self.next_page()
             # page_number += 1
+
+        # except TimeoutException:
+        #     print("Loading took too much time!")
 
     def get_img_bytes_from_url(self, img_url):
         return requests.get(img_url).content
