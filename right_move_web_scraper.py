@@ -1,13 +1,19 @@
 from datetime import datetime
 from pathlib import Path
+from selenium.common.exceptions import TimeoutException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from unittest.main import main
 import json
 import os
+import pandas as pd
 import requests
 import time
+
+# TODO: Add in a way that stops duplicates of images being added
 
 class RightMoveScraper():
     """
@@ -30,15 +36,16 @@ class RightMoveScraper():
         It uses selenium's webdriver function to access the google chrome browser. 
 
         """
-        # chrome_options = Options()
+        chrome_options = Options()
         # #chrome_options.add_argument("--disable-extensions")
         # #chrome_options.add_argument("--disable-gpu")
-        # chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")
         # # chrome_options.headless = True # also works
-        # self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver = webdriver.Chrome()
-        # TODO: self.driver.get(url)
-        
+        self.driver = webdriver.Chrome(options=chrome_options)
+        # self.driver = webdriver.Chrome()
+        query = "glasgow"
+        self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
+        self.delay = 10
         
 # TODO: Add in the wait until functions to all elements being accessed
 
@@ -49,7 +56,7 @@ class RightMoveScraper():
         Navigates to the Rightmove website using the Selenium webdriver's "get" method.  
 
         """
-        self.driver.get("https://www.rightmove.co.uk/")
+        self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
         
     def accept_cookies(self):
         """
@@ -59,11 +66,23 @@ class RightMoveScraper():
         to locate and click on the button.
         
         """
+       
         
-        accept_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Allow all cookies']")
-        time.sleep(1)
-        accept_button.click()
-        print(accept_button)
+        try:
+            # body class='header-rebranding rebranded-logo'
+            #WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, "//*[@class='header-rebranding rebranded-logo']"))
+            time.sleep(1)
+            print("Frame Ready!")
+            wait = WebDriverWait(self.driver, self.delay)
+            accept_cookies_button = wait.until(EC.presence_of_element_located((By.XPATH, "//button[@aria-label='Allow all cookies']")))
+            print("Accept Cookies Button Ready!")
+            # accept_button = self.driver.find_element(By.XPATH, "//button[@aria-label='Allow all cookies']")
+            accept_cookies_button.click()
+            time.sleep(1)
+            print(accept_cookies_button)
+        except TimeoutException:
+            print("Loading took too much time!")
+
         return True
 
     def search_for_houses(self):
@@ -87,7 +106,7 @@ class RightMoveScraper():
         properties_button = self.driver.find_element(By.XPATH, "//button[@id='submit']")
         time.sleep(1)
         properties_button.click()
-
+        
     def next_page(self):
         """
         This function navigates to the next page of the selected area of houses being scraped
@@ -113,9 +132,9 @@ class RightMoveScraper():
         were generated, they are also shared in a "json" file in a dictionary.
 
         """
-        self.search()
+        # self.search()
         self.accept_cookies()
-        self.search_for_houses()
+        # self.search_for_houses()
         # page_number = 0
         # Scrapes through 10 pages of house listings
         # while page_number < 9:
@@ -123,19 +142,42 @@ class RightMoveScraper():
         # scrolls to the specific height of 8000, going down the page
         self.driver.execute_script("window.scrollTo(0, 8000);")
         time.sleep(2)
-        # propertySearch is the id of the container that holds all the images of the result
+
+        
+        # try:
+        # #     container = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "propertySearch")))
+        # # propertySearch is the id of the container that holds all the images of the result
+        
+        #     wait = WebDriverWait(self.driver, self.delay)
+        #     container = wait.until(EC.presence_of_element_located((By.ID, "propertySearch")))
+        #     image_containers = wait.until(EC.presence_of_all_elements_located((By.XPATH, "div/div/div/div/div/div/div/div/div/div/div/div/a/div/div/div/img"))) 
+
         container = self.driver.find_element(By.ID, "propertySearch") 
         # uses xpath to locate the element that holds the image
         image_containers = container.find_elements(By.XPATH, "div/div/div/div/div/div/div/div/div/div/div/div/a/div/div/div/img") 
         # A dictionary to store all the images and associated data
         images = {}
 
+    # def create_image_folders(self, image_containers):
+    #     images = {}
+
+
         for img in image_containers:
+
+
             # TODO: use pandas to clean the title
             # Replaces special characters in the title so that the image name can be saved without error
             # if code randomly stops, it may be due to the name being saved having special characters that need replaced ^^
-            title = img.get_attribute('alt').lower().replace(' ', '-').replace('?', '-').replace('|', '-').replace(',', '-').replace(':', '-').replace(';', '-').replace('/', '-')
+            
+            title = img.get_attribute('alt').lower()
+            # Create a DataFrame from the title string
+            df = pd.DataFrame([title], columns=['title'])
+            # Replace unwanted characters with '-'
+            df['title'] = df['title'].str.replace(r'[^\w\s]+', '-', regex=True)
+            # Assign the cleaned title back to the title variable
+            title = df['title'].iloc[0]
             img_src = img.get_attribute('src')
+
             timestamp = datetime.now().strftime("%Y-%m-%d_[%H_%M_%S]")
             # Create a unique ID for the image by combining the image, timestamp, and title
             image_id = "image_{}_{}_{}".format(img, timestamp, title)
@@ -160,13 +202,16 @@ class RightMoveScraper():
             with open(file_path, "w") as f:
                 json.dump(images, f)
 
-            # self._next_page()
+            # self.next_page()
             # page_number += 1
+
+        # except TimeoutException:
+        #     print("Loading took too much time!")
 
     def get_img_bytes_from_url(self, img_url):
         return requests.get(img_url).content
         
-if __name__ == "__main__":
-    scraper = RightMoveScraper()
-    query = "glasgow houses"
-    scraper.get_all_images()
+# if __name__ == "__main__":
+    # query = "glasgow"
+    # scraper = RightMoveScraper()
+    # scraper.get_all_images()

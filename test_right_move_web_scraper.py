@@ -1,4 +1,4 @@
-from new_rightmove_scraper import RightMoveScraper
+from new_right_move_web_scraper import RightMoveScraper
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import unittest
@@ -23,9 +23,10 @@ class TestRightMoveScraper(unittest.TestCase):
         The assertEqual method is used to compare the actual output in the code 
         with the expected output of the code
         """
-        actual_value = self.scraper.driver.current_url
-        expected_value = f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType=glasgow&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false"
-        self.assertEqual(actual_value, expected_value)
+        actual_url = self.scraper.driver.current_url
+        query = "glasgow"
+        expected_url = f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false"
+        self.assertEqual(actual_url, expected_url)
 
     # @unittest.skip
     def test_accept_cookies(self):
