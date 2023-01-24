@@ -56,8 +56,7 @@ class RightMoveScraper():
         Navigates to the Rightmove website using the Selenium webdriver's "get" method.  
 
         """
-        self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
-        
+
     def accept_cookies(self):
         """
         This function bypasses the website's cookie policy by clicking on the "Allow all cookies" button.
