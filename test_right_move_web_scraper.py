@@ -1,4 +1,4 @@
-from new_right_move_web_scraper import RightMoveScraper
+from right_move_web_scraper import RightMoveScraper
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import unittest
