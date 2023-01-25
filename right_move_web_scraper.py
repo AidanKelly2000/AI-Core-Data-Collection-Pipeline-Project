@@ -19,11 +19,10 @@ class RightMoveScraper():
     """
     This class is used to scrape data from the Rightmove website.
 
-    By using selenium to access certain elements omn the webpag such as buttons 
+    By using selenium to access certain elements on the webpage such as buttons 
     and it also uses "XPATH" to accurately work out the correct sub heading of the 
-    container it wants to access. Each unique method of the class is started with
-    an underscore, which allows them to be protected, This effectively prevents it 
-    from being accessed unless it is from within a "sub-class".
+    container it wants to access. the name == main is used so that the method names 
+    of this class will only work specifically with this file. 
 
     Attributes:
         driver (webdriver.Chrome): Selenium webdriver to access the website.
@@ -33,13 +32,16 @@ class RightMoveScraper():
         """
         This function initialises the webdriver to access the Google Chrome browser.
 
-        It uses selenium's webdriver function to access the google chrome browser. 
+        It uses selenium's webdriver function to access the google chrome browser and 
+        get the subsequent URL. 
 
         """
         chrome_options = Options()
         # #chrome_options.add_argument("--disable-extensions")
-        # #chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
         # # chrome_options.headless = True # also works
         self.driver = webdriver.Chrome(options=chrome_options)
         # self.driver = webdriver.Chrome()
