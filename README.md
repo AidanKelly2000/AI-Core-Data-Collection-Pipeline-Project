@@ -248,14 +248,46 @@ services:
     volumes:
       - .:/AI-Core-Data-Collection-Pipeline-Project
 
-
-
-  # python:
-  #   depends_on:
-  #     - database
-  #   build: .
 ```
 
 ## Milestone 7
 
 The final step of the project was to automate the creation and upload of images. The images were uploaded to docker hub, which is used to store images remotely. This is what is known as a CI/CD pipeline, this was important as it allows the code to be changed and then directly pushed to docker hub straight from the CLI. 
+
+Github secrets were used for the username and token of the docker hub repo. Secrets are used to store information that can be accesed by the code to open up e.g. docker hub so that it can create and update images automatically. To upload/update images in docker hub, secrets can be used to enter the username of the account and they can access the container using the associated token.   
+
+The follwing docker-image.yml folder was used to create the CI pipeline:
+
+```python
+name: Docker Image CI
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      -
+        name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/right_move_web_scraper:latest
+```
