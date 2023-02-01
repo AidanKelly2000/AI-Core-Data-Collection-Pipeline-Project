@@ -15,7 +15,7 @@ It was then time to choose a website to scrape. A short list of 10 websites was 
 
 The first thing required to scrape a website is to create a scraper class. The methods were chosen for each required operation of the scraper:
 
-''''
+'''
 class RightMoveScraper():
     
     This class is used to scrape data from the Rightmove website.
@@ -43,7 +43,7 @@ class RightMoveScraper():
         query = "glasgow"
         self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
         self.delay = 10
-''''
+'''
 
 Certain selenium methods were used to navigate web pages, methods such as scrolling, finding elements and accepting cookies.
 
