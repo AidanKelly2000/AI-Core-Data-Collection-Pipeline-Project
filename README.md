@@ -13,7 +13,7 @@ It was then time to choose a website to scrape. A short list of 10 websites was 
 
 ## Milestone 3
 
-The first thing required to scrape a website is to create a scraper class. The methods were chosen for each required operation of the scraper:
+The first thing required to scrape a website is to create a scraper class. The methods were chosen for each required operation of the scraper, the scraper was ran in headless mode, as explained in milestone 6:
 
 ```python
 
@@ -34,14 +34,11 @@ class RightMoveScraper():
     def __init__(self):
 
         chrome_options = Options()
-        # #chrome_options.add_argument("--disable-extensions")
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-        # # chrome_options.headless = True # also works
         self.driver = webdriver.Chrome(options=chrome_options)
-        # self.driver = webdriver.Chrome()
         query = "glasgow"
         self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
         self.delay = 10
@@ -193,3 +190,72 @@ if __name__ == "__main__":
 ```
 
 ## Milestone 6
+
+The scraper was ran in headless mode, which is when the GUI is not used and the computer does all the scraping by only running through the code and not producing a visualisation. 
+
+One of the final steps of this project was using Docker to create an image and eventually deploy it to the cloud. The image was created using the following Dockerfile:
+
+```python 
+# Specify image:tag
+FROM python:3.9.12
+
+# Set the current working directory
+WORKDIR /AI-Core-Data-Collection-Pipeline-Project
+
+# Adding trusting keys to apt for repositories, you can download and add them using the following command
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+
+# Add Google Chrome. Use the following command for that
+RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
+
+# Update apt
+RUN apt-get -y update
+
+# install google chrome
+RUN apt-get install -y google-chrome-stable
+
+# Now you need to download chromedriver. First you are going to download the zipfile containing the latest chromedriver release
+RUN wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE`/chromedriver_linux64.zip
+
+# Unzip the chromedriver
+RUN apt-get install -yqq unzip
+RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+
+# Copy in all files of the directory to the Docker Image
+COPY . .
+
+# Install needed dependencies
+RUN pip install -r requirements.txt
+
+EXPOSE 4444
+
+# Run the scraper file using the python version specified in the container
+CMD ["python", "input_for_scraper.py"]
+```
+
+This Dockerfile is used so that any laptop or computer whether its a mac, windows or linux, can use this code to run the scraper. It is used to store all the important features of the program, such as python verison, chrome driver, the imports such as selenium and the port/expose associated with selenium, which is 4444 both ways. 
+
+A docker compose file was also created as a way of understanding how volumes worked and how images can be created from a compose file, which increases simplicity when running images. The volume was stored locally to see how the compose file worked:
+
+```python
+version: "3.9"
+
+services:
+  database:
+    build: .
+    ports:
+      - "4444:4444"
+    volumes:
+      - .:/AI-Core-Data-Collection-Pipeline-Project
+
+
+
+  # python:
+  #   depends_on:
+  #     - database
+  #   build: .
+```
+
+## Milestone 7
+
+The final step of the project was to automate the creation and upload of images. The images were uploaded to docker hub, which is used to store images remotely. This is what is known as a CI/CD pipeline, this was important as it allows the code to be changed and then directly pushed to docker hub straight from the CLI. 
