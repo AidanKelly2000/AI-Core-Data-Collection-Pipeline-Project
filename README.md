@@ -16,9 +16,10 @@ It was then time to choose a website to scrape. A short list of 10 websites was 
 The first thing required to scrape a website is to create a scraper class. The methods were chosen for each required operation of the scraper:
 
 '''
+An explanation of the class and the code used for the initialiser:
 
 class RightMoveScraper():
-    
+    """
     This class is used to scrape data from the Rightmove website.
 
     By using selenium to access certain elements on the webpage such as buttons 
@@ -28,7 +29,7 @@ class RightMoveScraper():
 
     Attributes:
         driver (webdriver.Chrome): Selenium webdriver to access the website.
-
+    """
 
     def __init__(self):
 
