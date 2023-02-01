@@ -15,17 +15,45 @@ It was then time to choose a website to scrape. A short list of 10 websites was 
 
 The first thing required to scrape a website is to create a scraper class. The methods were chosen for each required operation of the scraper:
 
-'''
+''''
+class RightMoveScraper():
+    """
+    This class is used to scrape data from the Rightmove website.
 
-'''
+    By using selenium to access certain elements on the webpage such as buttons 
+    and it also uses "XPATH" to accurately work out the correct sub heading of the 
+    container it wants to access. the name == main is used so that the method names 
+    of this class will only work specifically with this file. 
+
+    Attributes:
+        driver (webdriver.Chrome): Selenium webdriver to access the website.
+
+    """
+    def __init__(self):
+
+        chrome_options = Options()
+        # #chrome_options.add_argument("--disable-extensions")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        # # chrome_options.headless = True # also works
+        self.driver = webdriver.Chrome(options=chrome_options)
+        # self.driver = webdriver.Chrome()
+        query = "glasgow"
+        self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
+        self.delay = 10
+''''
 
 Certain selenium methods were used to navigate web pages, methods such as scrolling, finding elements and accepting cookies.
 
 An important implementation of the scraper class was to use the exact URL's of the web page to scrape the data, this lowered the computational cost of the program as it wasn't having to search through the websites search bar to locate the desired houses, it instead accessed them from the exact URL's provided. There was code implemented to allow the program to scrape as many pages as necessary, although this method wasn't required as only one page was being scraped to save time.
 
+"""
 - if __name__ == "__main__" 
+"""
 
-this code was used so that the scraper class only runs as a script but not when it's imported as a module in a different program. This is useful to implement to test to make sure your code is run directly or if it is being imported by something else.
+this if statement was used so that the scraper class only runs as a script but not when it's imported as a module in a different program. This is useful to implement to test to make sure your code is run directly or if it is being imported by something else.
 
 ## Milestone 4
 
