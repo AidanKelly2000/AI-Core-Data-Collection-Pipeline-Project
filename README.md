@@ -51,9 +51,11 @@ Certain selenium methods were used to navigate web pages, methods such as scroll
 
 An important implementation of the scraper class was to use the exact URL's of the web page to scrape the data, this lowered the computational cost of the program as it wasn't having to search through the websites search bar to locate the desired houses, it instead accessed them from the exact URL's provided. There was code implemented to allow the program to scrape as many pages as necessary, although this method wasn't required as only one page was being scraped to save time.
 
-"""
-- if __name__ == "__main__" 
-"""
+```python
+if __name__ == "__main__":
+    query = "glasgow"
+    scraper = RightMoveScraper()
+```
 
 this if statement was used so that the scraper class only runs as a script but not when it's imported as a module in a different program. This is useful to implement to test to make sure your code is run directly or if it is being imported by something else.
 
@@ -61,7 +63,51 @@ this if statement was used so that the scraper class only runs as a script but n
 
 The "get_all_images()" method is used to collect the images on the rightmove web pages. It is the main method of the scraper class as it collects the main container where the images are located and then scrapes them all using the XPATH's of the image locations. Not all images were scraped is this is a high computational cost, it uses up lots of storage space, this project was formulated mainly to learn how to use all the tools described.
 
-There is then a for loop which will loop for each image scraped. This loop is used to generate unique time stamped image id's which are then stored in a json file in a nested folder called "images/raw_data" and also saves the images scraped in a local file, within a nested folder called "images/glasgow_houses". 
+There is then a for loop which will loop for each image scraped. 
+```python
+
+        for img in image_containers:
+
+
+            # TODO: use pandas to clean the title
+            # Replaces special characters in the title so that the image name can be saved without error
+            # if code randomly stops, it may be due to the name being saved having special characters that need replaced ^^
+            
+            title = img.get_attribute('alt').lower()
+            # Create a DataFrame from the title string
+            df = pd.DataFrame([title], columns=['title'])
+            # Replace unwanted characters with '-'
+            df['title'] = df['title'].str.replace(r'[^\w\s]+', '-', regex=True)
+            # Assign the cleaned title back to the title variable
+            title = df['title'].iloc[0]
+            img_src = img.get_attribute('src')
+
+            timestamp = datetime.now().strftime("%Y-%m-%d_[%H_%M_%S]")
+            # Create a unique ID for the image by combining the image, timestamp, and title
+            image_id = "image_{}_{}_{}".format(img, timestamp, title)
+            images[image_id] = {"img_id": image_id, "timestamp": timestamp, "img_src": img_src, "Title": title}
+            # Create a directory to save the images if it doesn't already exist
+            query_dir = "images/glasgow_houses"
+            Path(query_dir).mkdir(parents=True, exist_ok=True)
+            # Create a unique file name for the image by combining the timestamp, title, and file extension
+            img_name = "{}_{}{}".format(timestamp, title, os.path.splitext(img_src)[1])
+            fp = f"{query_dir}/{img_name}"    
+            # Get the image data from the URL  
+            img_data = self.get_img_bytes_from_url(img_src)
+            # Save the image to the directory using the unique file name
+            with open(fp, 'wb') as handler:
+                handler.write(img_data)
+            # Create a directory to save the json file if it doesn't already exist
+            query_dir_2 = "images/raw_data"
+            Path(query_dir_2).mkdir(parents=True, exist_ok=True)
+            # Create a file path for the json file
+            file_path = f"{query_dir_2}/right_move_images.json"
+            # Save the images dictionary to a file
+            with open(file_path, "w") as f:
+                json.dump(images, f)
+```
+
+This loop is used to generate unique time stamped image id's which are then stored in a json file in a nested folder called "images/raw_data" and also saves the images scraped in a local file, within a nested folder called "images/glasgow_houses". 
 
 The images are stored in a dictionary, each record in the dictionary has its unique ID, timestamp of when it was scraped and links to any images associated with it.
 
