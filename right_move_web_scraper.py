@@ -33,7 +33,9 @@ class RightMoveScraper():
         This function initialises the webdriver to access the Google Chrome browser.
 
         It uses selenium's webdriver function to access the google chrome browser and 
-        get the subsequent URL. 
+        get the subsequent URL. Headless mode is used to run the scraper without the GUI and 
+        --no-sandbox and --disable-dev-shm-usage are required to have the image be creater 
+        in docker
 
         """
         chrome_options = Options()
@@ -48,16 +50,7 @@ class RightMoveScraper():
         query = "glasgow"
         self.driver.get(f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false")
         self.delay = 10
-        
-# TODO: Add in the wait until functions to all elements being accessed
 
-    def search(self):
-        """
-        This function specifies the website that the webdriver is searching for.
-
-        Navigates to the Rightmove website using the Selenium webdriver's "get" method.  
-
-        """
 
     def accept_cookies(self):
         """
@@ -67,11 +60,8 @@ class RightMoveScraper():
         to locate and click on the button.
         
         """
-       
         
         try:
-            # body class='header-rebranding rebranded-logo'
-            #WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.XPATH, "//*[@class='header-rebranding rebranded-logo']"))
             time.sleep(1)
             print("Frame Ready!")
             wait = WebDriverWait(self.driver, self.delay)
@@ -85,28 +75,6 @@ class RightMoveScraper():
             print("Loading took too much time!")
 
         return True
-
-    def search_for_houses(self):
-        """
-        This function is used to locate houses in a specific area of the UK by 
-        passing a keyword to the search bar.
-
-        The root branch of the search bar is found using the "By" and "ID" from "find_element" method, then 
-        the "XPATH" is used from there and sends a string of keywords to the search
-        bar using the "send_keys" method. It then uses a series of "XPATH" and click to access 
-        different elements on the pages, as explained previously.
-
-        """
-        search_bar = self.driver.find_element(By.ID, "_3I545u3msIUhJ6tHw7P9AZ")
-        send_key_word = search_bar.find_element(By.XPATH, "div[1]/div/div/div/div/input").send_keys("Glasgow")
-        time.sleep(1)
-
-        search_for_sale_houses = self.driver.find_element(By.XPATH, "//button[@class='ksc_button large primary searchPanelControls ']")
-        time.sleep(1)
-        search_for_sale_houses.click()
-        properties_button = self.driver.find_element(By.XPATH, "//button[@id='submit']")
-        time.sleep(1)
-        properties_button.click()
         
     def next_page(self):
         """
@@ -125,33 +93,21 @@ class RightMoveScraper():
         """
         Scrapes images and text from the Rightmove website for the selected area and pages.
         
-        This method navigates to the Rightmove website, accepts the cookies, searches for 
-        houses in a specific area, and navigates through a specified number of pages. It 
-        uses selenium's webdriver and "XPATH" to access the elements on the website and scrapes 
+        This method navigates to the Rightmove website, accepts the cookies and navigates through a specified number
+        of houses if asked to. It uses selenium's webdriver and "XPATH" to access the elements on the website and scrapes 
         the images and text on the pages. New Directories are created using the "Path" class from
-        the import "pathlib" and the method "mkdir". The images with there associated text are saved based on the time they 
-        were generated, they are also shared in a "json" file in a dictionary.
+        the import "pathlib" and the method "mkdir". The images with the associated text are saved based on the time they 
+        were generated, they are also saved in a "json" file in a dictionary.
 
         """
-        # self.search()
+
         self.accept_cookies()
-        # self.search_for_houses()
         # page_number = 0
-        # Scrapes through 10 pages of house listings
         # while page_number < 9:
         time.sleep(2)
         # scrolls to the specific height of 8000, going down the page
         self.driver.execute_script("window.scrollTo(0, 8000);")
         time.sleep(2)
-
-        
-        # try:
-        # #     container = WebDriverWait(self.driver, delay).until(EC.presence_of_element_located((By.ID, "propertySearch")))
-        # # propertySearch is the id of the container that holds all the images of the result
-        
-        #     wait = WebDriverWait(self.driver, self.delay)
-        #     container = wait.until(EC.presence_of_element_located((By.ID, "propertySearch")))
-        #     image_containers = wait.until(EC.presence_of_all_elements_located((By.XPATH, "div/div/div/div/div/div/div/div/div/div/div/div/a/div/div/div/img"))) 
 
         container = self.driver.find_element(By.ID, "propertySearch") 
         # uses xpath to locate the element that holds the image
@@ -159,17 +115,9 @@ class RightMoveScraper():
         # A dictionary to store all the images and associated data
         images = {}
 
-    # def create_image_folders(self, image_containers):
-    #     images = {}
-
-
         for img in image_containers:
 
-
-            # TODO: use pandas to clean the title
             # Replaces special characters in the title so that the image name can be saved without error
-            # if code randomly stops, it may be due to the name being saved having special characters that need replaced ^^
-            
             title = img.get_attribute('alt').lower()
             # Create a DataFrame from the title string
             df = pd.DataFrame([title], columns=['title'])
@@ -206,13 +154,10 @@ class RightMoveScraper():
             # self.next_page()
             # page_number += 1
 
-        # except TimeoutException:
-        #     print("Loading took too much time!")
-
     def get_img_bytes_from_url(self, img_url):
         return requests.get(img_url).content
         
-# if __name__ == "__main__":
-    # query = "glasgow"
-    # scraper = RightMoveScraper()
-    # scraper.get_all_images()
+if __name__ == "__main__":
+    query = "glasgow"
+    scraper = RightMoveScraper()
+    scraper.get_all_images()

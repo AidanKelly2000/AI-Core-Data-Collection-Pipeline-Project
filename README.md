@@ -291,3 +291,5 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/right_move_web_scraper:latest
 ```
+
+This folder essentially creates an image for any git add-commit-push done in the CLI for this project folder.
