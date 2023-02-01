@@ -157,7 +157,7 @@ class RightMoveScraper():
     def get_img_bytes_from_url(self, img_url):
         return requests.get(img_url).content
         
-if __name__ == "__main__":
-    query = "glasgow"
-    scraper = RightMoveScraper()
-    scraper.get_all_images()
+# if __name__ == "__main__":
+#     query = "glasgow"
+#     scraper = RightMoveScraper()
+#     scraper.get_all_images()
