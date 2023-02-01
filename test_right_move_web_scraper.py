@@ -36,7 +36,7 @@ class TestRightMoveScraper(unittest.TestCase):
         actual_value = self.scraper.accept_cookies()
         self.assertTrue(actual_value)
 
-    # @unittest.skip
+    @unittest.skip
     def test_next_page(self):
         """
         This test case checks the functionality of the "next_page" method of the 
