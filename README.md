@@ -68,10 +68,7 @@ There is then a for loop which will loop for each image scraped.
 
         for img in image_containers:
 
-
-            # TODO: use pandas to clean the title
             # Replaces special characters in the title so that the image name can be saved without error
-            # if code randomly stops, it may be due to the name being saved having special characters that need replaced ^^
             
             title = img.get_attribute('alt').lower()
             # Create a DataFrame from the title string
@@ -118,5 +115,81 @@ Each image was saved as <date>_<time>_<order of image>.<image file extension> i.
 In this milestone, docstrings were added to the methods created. This helped in giving context to viewers on what was happening in the code, it also reinforced my understanding of what the methods were doing.
 
 It was important to add a unit test file to the website scraper so that if someone else were to use it they can see the outputs and variables, to again help their understanding of what the code is achieving. The tests were produced in the test_right_move_web_scraper.py file. The first test was used to see if the correct URL was being returned in the initialiser. The accept cookies test checks if the "accept_cookies" button is clicked. The next page button is checked if there is more than one page being scraped, although this method is skipped as it isn't in use for this scraper. The final test checks to see if there are elements going into the image_containers and if the image_containers is a list, it does this using asserGreater and assertIsInstance respectively.
+
+The test file was formatted like this:
+
+```python
+from right_move_web_scraper import RightMoveScraper
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+import unittest
+
+class TestRightMoveScraper(unittest.TestCase):
+
+    def setUp(self):
+        """
+        This function sets up the initial conditions for each test case being
+        carried out.
+
+        It creates an instance of the RightMoveScraper class and gives it the
+        variable name "scraper". 
+        """
+        self.scraper = RightMoveScraper()
+    # @unittest.skip
+    def test_search(self):
+        """
+        This test case checks if the search method uses the webdriver to 
+        find the rightmove website.
+
+        The assertEqual method is used to compare the actual output in the code 
+        with the expected output of the code
+        """
+        actual_url = self.scraper.driver.current_url
+        query = "glasgow"
+        expected_url = f"https://www.rightmove.co.uk/property-for-sale/find.html?searchType={query}&locationIdentifier=REGION%5E550&insId=1&radius=0.0&minPrice=&maxPrice=&minBedrooms=&maxBedrooms=&displayPropertyType=&maxDaysSinceAdded=&_includeSSTC=on&sortByPriceDescending=&primaryDisplayPropertyType=&secondaryDisplayPropertyType=&oldDisplayPropertyType=&oldPrimaryDisplayPropertyType=&newHome=&auction=false"
+        self.assertEqual(actual_url, expected_url)
+
+    # @unittest.skip
+    def test_accept_cookies(self):
+        """
+        This test case Checks to see if the "accept_cookies" button is clicked
+        """
+        actual_value = self.scraper.accept_cookies()
+        self.assertTrue(actual_value)
+
+    @unittest.skip
+    def test_next_page(self):
+        """
+        This test case checks the functionality of the "next_page" method of the 
+        RightMoveScraper class.
+
+        It asserts that the next page button is enabled using the "is_enabled()"
+        method. This test case is used to verify that the "next_page" method is able 
+        to navigate to the next page of the selected area of houses being scraped.
+        """
+        self.scraper.accept_cookies()
+        self.scraper.next_page()
+        next_page_button = self.scraper.driver.find_element(By.XPATH, "//button[@class='pagination-button pagination-direction pagination-direction--next']")
+        self.assertTrue(next_page_button.is_enabled())
+
+    # @unittest.skip
+    def test_get_all_images(self):
+        """
+        This test case checks if the get_all_images method is scraping images
+
+        It uses the "assertGreater" to check that at least one image is in the container.
+        """
+        self.scraper.get_all_images()
+        container = self.scraper.driver.find_element(By.ID, "propertySearch")
+        image_containers = container.find_elements(By.XPATH, "div/div/div/div/div/div/div/div/div/div/div/div/a/div/div/div/img")
+        self.assertGreater(len(image_containers), 0)
+        self.assertIsInstance(image_containers, list)
+
+    def tearDown(self):
+        self.scraper.driver.quit()
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2, exit=True)
+```
 
 ## Milestone 6
